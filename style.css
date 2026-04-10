@@ -1,0 +1,248 @@
+:root {
+  --bg: #0b0d10;
+  --bg-alt: #14171c;
+  --panel: #1b1f26;
+  --accent: #ff8a2b;
+  --accent-soft: #ff8a2b33;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --border: #2b313b;
+  --danger: #ff3b3b;
+  --radius: 6px;
+  --gap: 10px;
+  --shadow: 0 0 0 1px #000000aa, 0 12px 30px #000000aa;
+  --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #1f2933 0, #05070a 55%);
+  color: var(--text);
+  font-family: var(--font);
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.top-bar {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: linear-gradient(to right, #05070a, #111827);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 4px 12px #000000aa;
+}
+
+.logo {
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  font-size: 13px;
+  color: var(--accent);
+}
+
+.search {
+  background: #020617;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  color: var(--text);
+  min-width: 220px;
+}
+
+.search:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-soft);
+}
+
+.layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 0;
+}
+
+/* Sidebar */
+
+.sidebar {
+  background: #05070a;
+  border-right: 1px solid var(--border);
+  padding: 12px;
+  box-shadow: 4px 0 16px #000000aa;
+}
+
+.sidebar-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+.collection-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.collection-item {
+  font-size: 13px;
+  padding: 6px 8px;
+  border-radius: var(--radius);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.collection-item::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #4b5563;
+}
+
+.collection-item.active {
+  background: #111827;
+  color: var(--text);
+}
+
+.collection-item.active::before {
+  background: var(--accent);
+}
+
+/* Main panel */
+
+.main-panel {
+  padding: 14px;
+  background: radial-gradient(circle at top left, #111827 0, #020617 55%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Drop zone */
+
+.drop-zone {
+  border-radius: var(--radius);
+  border: 1px dashed #4b5563;
+  background: repeating-linear-gradient(
+      -45deg,
+      #111827,
+      #111827 8px,
+      #0b0f19 8px,
+      #0b0f19 16px
+    );
+  color: var(--muted);
+  padding: 18px;
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+.drop-zone p {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.drop-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.drop-zone.drag-over {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-soft), 0 16px 40px #000000dd;
+}
+
+/* Asset grid */
+
+.asset-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--gap);
+  align-content: flex-start;
+}
+
+.asset-card {
+  background: var(--panel);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.asset-thumb {
+  height: 90px;
+  background: radial-gradient(circle at top, #1f2937 0, #020617 60%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.asset-thumb span {
+  opacity: 0.8;
+}
+
+.asset-meta {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.asset-name {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.asset-type {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.asset-tag-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.asset-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid #374151;
+  background: #020617;
+  color: var(--muted);
+}
