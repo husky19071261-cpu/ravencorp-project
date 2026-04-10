@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Asset Grid // v0.1</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="top-bar">
+      <div class="logo">ASSET GRID</div>
+      <input class="search" type="text" placeholder="Search assets..." />
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <h2 class="sidebar-title">Collections</h2>
+        <ul class="collection-list">
+          <li class="collection-item active">All Assets</li>
+          <li class="collection-item">Project A</li>
+          <li class="collection-item">Project B</li>
+        </ul>
+      </aside>
+
+      <main class="main-panel">
+        <div class="drop-zone" id="drop-zone">
+          <p>Drag & drop files here or click to select</p>
+          <input type="file" id="file-input" multiple />
+        </div>
+
+        <div class="asset-grid" id="asset-grid">
+          <!-- Asset cards injected here -->
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
+
+  
+
