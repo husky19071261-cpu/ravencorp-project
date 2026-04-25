@@ -17,7 +17,8 @@
     }
 
     .container {
-      margin-top: 120px;
+      margin-top: 100px;
+      padding: 20px;
     }
 
     .hidden {
@@ -27,33 +28,122 @@
     button {
       background: #3b82f6;
       border: none;
-      padding: 12px 24px;
+      padding: 10px 20px;
       color: white;
-      border-radius: 12px;
+      border-radius: 10px;
       cursor: pointer;
+      margin: 5px;
+    }
+
+    input {
+      padding: 10px;
+      width: 250px;
+      border-radius: 10px;
+      border: none;
+      margin-right: 10px;
+    }
+
+    .idea {
+      background: #1e293b;
+      margin: 10px auto;
+      padding: 10px;
+      border-radius: 10px;
+      width: 300px;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- First screen -->
+  <!-- HOME -->
   <div class="container" id="home">
     <h1>RavenCorp</h1>
     <p>Your futuristic project hub</p>
-    <button onclick="startApp()">Get Started</button>
+    <button onclick="openApp()">Get Started</button>
   </div>
 
-  <!-- Second screen -->
-  <div class="container hidden" id="app">
+  <!-- DASHBOARD -->
+  <div class="container hidden" id="dashboard">
     <h1>Dashboard</h1>
-    <p>Now it actually does something 😎</p>
+    <button onclick="openYouTube()">YouTube Organizer</button>
+    <button onclick="goHome()">Back</button>
+  </div>
+
+  <!-- YOUTUBE TOOL -->
+  <div class="container hidden" id="youtube">
+    <h1>YouTube Idea Organizer</h1>
+
+    <input id="ideaInput" placeholder="Enter video idea...">
+    <button onclick="addIdea()">Add</button>
+
+    <div id="ideasList"></div>
+
+    <br>
+    <button onclick="goDashboard()">Back</button>
   </div>
 
   <script>
-    function startApp() {
+    function openApp() {
+      hideAll();
+      document.getElementById("dashboard").classList.remove("hidden");
+    }
+
+    function openYouTube() {
+      hideAll();
+      document.getElementById("youtube").classList.remove("hidden");
+      loadIdeas();
+    }
+
+    function goHome() {
+      hideAll();
+      document.getElementById("home").classList.remove("hidden");
+    }
+
+    function goDashboard() {
+      hideAll();
+      document.getElementById("dashboard").classList.remove("hidden");
+    }
+
+    function hideAll() {
       document.getElementById("home").classList.add("hidden");
-      document.getElementById("app").classList.remove("hidden");
+      document.getElementById("dashboard").classList.add("hidden");
+      document.getElementById("youtube").classList.add("hidden");
+    }
+
+    function addIdea() {
+      const input = document.getElementById("ideaInput");
+      const ideaText = input.value.trim();
+
+      if (ideaText === "") return;
+
+      let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
+      ideas.push(ideaText);
+      localStorage.setItem("ideas", JSON.stringify(ideas));
+
+      input.value = "";
+      loadIdeas();
+    }
+
+    function loadIdeas() {
+      const list = document.getElementById("ideasList");
+      list.innerHTML = "";
+
+      let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
+
+      ideas.forEach((idea, index) => {
+        const div = document.createElement("div");
+        div.className = "idea";
+        div.innerHTML = idea + 
+          `<br><button onclick="deleteIdea(${index})">Delete</button>`;
+        list.appendChild(div);
+      });
+    }
+
+    function deleteIdea(index) {
+      let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
+      ideas.splice(index, 1);
+      localStorage.setItem("ideas", JSON.stringify(ideas));
+      loadIdeas();
     }
   </script>
 
