@@ -52,9 +52,29 @@
       margin: 10px auto;
       padding: 15px;
       border-radius: 12px;
-      width: 360px;
+      width: 380px;
       text-align: left;
       box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+
+    #dropZone {
+      border: 2px dashed #3b82f6;
+      padding: 20px;
+      margin: 10px auto;
+      width: 380px;
+      border-radius: 12px;
+      color: #93c5fd;
+      transition: 0.2s;
+    }
+
+    #dropZone:hover {
+      background: #1e293b;
+    }
+
+    video {
+      width: 100%;
+      border-radius: 10px;
+      margin-top: 10px;
     }
 
     .small {
@@ -63,232 +83,278 @@
     }
 
     #searchInput {
-      width: 300px;
+      width: 320px;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- HOME -->
-  <div class="container" id="home">
-    <h1>RavenCorp</h1>
-    <p>Your local cloud video library</p>
-    <button onclick="openDashboard()">Get Started</button>
-  </div>
+<!-- HOME -->
+<div class="container" id="home">
+  <h1>RavenCorp</h1>
+  <p>Your local video cloud system</p>
+  <button onclick="openDashboard()">Enter</button>
+</div>
 
-  <!-- DASHBOARD -->
-  <div class="container hidden" id="dashboard">
-    <h1>Dashboard</h1>
-    <button onclick="openIdeas()">🧠 Ideas</button>
-    <button onclick="openVideos()">🎬 Video Cloud</button>
-    <button onclick="goHome()">Back</button>
-  </div>
+<!-- DASHBOARD -->
+<div class="container hidden" id="dashboard">
+  <h1>Dashboard</h1>
+  <button onclick="openIdeas()">🧠 Ideas</button>
+  <button onclick="openVideos()">🎬 Video Cloud</button>
+  <button onclick="goHome()">Back</button>
+</div>
 
-  <!-- IDEAS -->
-  <div class="container hidden" id="ideasPage">
-    <h1>🧠 Ideas</h1>
+<!-- IDEAS -->
+<div class="container hidden" id="ideasPage">
+  <h1>🧠 Ideas</h1>
 
-    <input id="ideaInput" placeholder="New idea...">
-    <button onclick="addIdea()">Add</button>
+  <input id="ideaInput" placeholder="New idea...">
+  <button onclick="addIdea()">Add</button>
 
-    <div id="ideasList"></div>
+  <div id="ideasList"></div>
 
-    <button onclick="goDashboard()">Back</button>
-  </div>
+  <button onclick="goDashboard()">Back</button>
+</div>
 
-  <!-- VIDEOS -->
-  <div class="container hidden" id="videosPage">
-    <h1>🎬 Local Cloud Library</h1>
+<!-- VIDEOS -->
+<div class="container hidden" id="videosPage">
+  <h1>🎬 Local Cloud</h1>
 
-    <!-- SEARCH -->
-    <input id="searchInput" placeholder="Search videos, tags, files..." oninput="loadVideos()">
+  <!-- DROP ZONE -->
+  <div id="dropZone">📁 Drag & Drop Videos Here</div>
 
-    <br><br>
+  <!-- SEARCH -->
+  <input id="searchInput" placeholder="Search videos..." oninput="loadVideos()">
 
-    <!-- INPUTS -->
-    <input id="titleInput" placeholder="Video title">
-    <input id="fileInput" placeholder="File name or path (e.g. video.mp4)">
-    <input id="tagInput" placeholder="Tags (gaming, vlog...)">
+  <br><br>
 
-    <select id="statusInput">
-      <option value="Idea">Idea</option>
-      <option value="Editing">Editing</option>
-      <option value="Finished">Finished</option>
-    </select>
+  <!-- INPUTS -->
+  <input id="titleInput" placeholder="Video title">
+  <input id="fileInput" placeholder="File name (optional)">
+  <input id="tagInput" placeholder="Tags (gaming, vlog...)">
 
-    <br>
+  <select id="statusInput">
+    <option value="Idea">Idea</option>
+    <option value="Editing">Editing</option>
+    <option value="Finished">Finished</option>
+  </select>
 
-    <button onclick="addVideo()">Add Video</button>
+  <br>
 
-    <div id="videoList"></div>
+  <button onclick="addVideo()">Add Video</button>
 
-    <button onclick="goDashboard()">Back</button>
-  </div>
+  <div id="videoList"></div>
 
-  <script>
+  <button onclick="goDashboard()">Back</button>
+</div>
 
-    // ---------------- NAVIGATION ----------------
-    function hideAll() {
-      document.getElementById("home").classList.add("hidden");
-      document.getElementById("dashboard").classList.add("hidden");
-      document.getElementById("ideasPage").classList.add("hidden");
-      document.getElementById("videosPage").classList.add("hidden");
-    }
+<script>
 
-    function openDashboard() {
-      hideAll();
-      document.getElementById("dashboard").classList.remove("hidden");
-    }
+function hideAll() {
+  document.getElementById("home").classList.add("hidden");
+  document.getElementById("dashboard").classList.add("hidden");
+  document.getElementById("ideasPage").classList.add("hidden");
+  document.getElementById("videosPage").classList.add("hidden");
+}
 
-    function openIdeas() {
-      hideAll();
-      document.getElementById("ideasPage").classList.remove("hidden");
-      loadIdeas();
-    }
+function openDashboard() {
+  hideAll();
+  document.getElementById("dashboard").classList.remove("hidden");
+}
 
-    function openVideos() {
-      hideAll();
-      document.getElementById("videosPage").classList.remove("hidden");
-      loadVideos();
-    }
+function openIdeas() {
+  hideAll();
+  document.getElementById("ideasPage").classList.remove("hidden");
+  loadIdeas();
+}
 
-    function goHome() {
-      hideAll();
-      document.getElementById("home").classList.remove("hidden");
-    }
+function openVideos() {
+  hideAll();
+  document.getElementById("videosPage").classList.remove("hidden");
+  loadVideos();
+}
 
-    function goDashboard() {
-      hideAll();
-      document.getElementById("dashboard").classList.remove("hidden");
-    }
+function goHome() {
+  hideAll();
+  document.getElementById("home").classList.remove("hidden");
+}
 
-    // ---------------- IDEAS ----------------
-    function addIdea() {
-      const input = document.getElementById("ideaInput");
-      const text = input.value.trim();
-      if (!text) return;
+function goDashboard() {
+  hideAll();
+  document.getElementById("dashboard").classList.remove("hidden");
+}
 
-      let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
-      ideas.push(text);
-      localStorage.setItem("ideas", JSON.stringify(ideas));
+/* ---------------- IDEAS ---------------- */
 
-      input.value = "";
-      loadIdeas();
-    }
+function addIdea() {
+  const input = document.getElementById("ideaInput");
+  const text = input.value.trim();
+  if (!text) return;
 
-    function loadIdeas() {
-      const list = document.getElementById("ideasList");
-      list.innerHTML = "";
+  let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
+  ideas.push(text);
+  localStorage.setItem("ideas", JSON.stringify(ideas));
 
-      let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
+  input.value = "";
+  loadIdeas();
+}
 
-      ideas.forEach((idea, index) => {
-        const div = document.createElement("div");
-        div.className = "card";
+function loadIdeas() {
+  const list = document.getElementById("ideasList");
+  list.innerHTML = "";
 
-        div.innerHTML = `
-          ${idea}<br>
-          <button onclick="moveToVideos('${idea.replace(/'/g, "\\'")}')">➜ Convert to Video</button>
-          <button onclick="deleteIdea(${index})">Delete</button>
-        `;
+  let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
 
-        list.appendChild(div);
-      });
-    }
+  ideas.forEach((idea, index) => {
+    const div = document.createElement("div");
+    div.className = "card";
 
-    function deleteIdea(index) {
-      let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
-      ideas.splice(index, 1);
-      localStorage.setItem("ideas", JSON.stringify(ideas));
-      loadIdeas();
-    }
+    div.innerHTML = `
+      ${idea}<br>
+      <button onclick="moveToVideos('${idea.replace(/'/g,"\\'")}')">➜ Make Video</button>
+      <button onclick="deleteIdea(${index})">Delete</button>
+    `;
 
-    function moveToVideos(text) {
-      let videos = JSON.parse(localStorage.getItem("videos")) || [];
-      videos.push({
-        title: text,
-        file: "",
-        tags: "",
-        status: "Idea"
-      });
+    list.appendChild(div);
+  });
+}
 
-      localStorage.setItem("videos", JSON.stringify(videos));
-      openVideos();
-    }
+function deleteIdea(index) {
+  let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
+  ideas.splice(index, 1);
+  localStorage.setItem("ideas", JSON.stringify(ideas));
+  loadIdeas();
+}
 
-    // ---------------- VIDEOS ----------------
-    function addVideo() {
-      const title = document.getElementById("titleInput").value.trim();
-      const file = document.getElementById("fileInput").value.trim();
-      const tags = document.getElementById("tagInput").value.trim();
-      const status = document.getElementById("statusInput").value;
+function moveToVideos(text) {
+  let videos = JSON.parse(localStorage.getItem("videos")) || [];
+  videos.push({
+    title: text,
+    file: "",
+    tags: "",
+    status: "Idea"
+  });
 
-      if (!title) return;
+  localStorage.setItem("videos", JSON.stringify(videos));
+  openVideos();
+}
 
-      let videos = JSON.parse(localStorage.getItem("videos")) || [];
+/* ---------------- VIDEOS ---------------- */
 
-      videos.push({
-        title,
-        file,
-        tags,
-        status
-      });
+function addVideo() {
+  const title = document.getElementById("titleInput").value.trim();
+  const file = document.getElementById("fileInput").value.trim();
+  const tags = document.getElementById("tagInput").value.trim();
+  const status = document.getElementById("statusInput").value;
 
-      localStorage.setItem("videos", JSON.stringify(videos));
+  if (!title) return;
 
-      document.getElementById("titleInput").value = "";
-      document.getElementById("fileInput").value = "";
-      document.getElementById("tagInput").value = "";
+  let videos = JSON.parse(localStorage.getItem("videos")) || [];
 
-      loadVideos();
-    }
+  videos.push({ title, file, tags, status });
 
-    function loadVideos() {
-      const list = document.getElementById("videoList");
-      list.innerHTML = "";
+  localStorage.setItem("videos", JSON.stringify(videos));
 
-      const search = document.getElementById("searchInput")?.value.toLowerCase() || "";
+  document.getElementById("titleInput").value = "";
+  document.getElementById("fileInput").value = "";
+  document.getElementById("tagInput").value = "";
 
-      let videos = JSON.parse(localStorage.getItem("videos")) || [];
+  loadVideos();
+}
 
-      videos
-        .filter(v =>
-          (v.title || "").toLowerCase().includes(search) ||
-          (v.tags || "").toLowerCase().includes(search) ||
-          (v.file || "").toLowerCase().includes(search)
-        )
-        .forEach((video, index) => {
+/* ---------------- SEARCH + RENDER ---------------- */
 
-          const div = document.createElement("div");
-          div.className = "card";
+function loadVideos() {
+  const list = document.getElementById("videoList");
+  list.innerHTML = "";
 
-          div.innerHTML = `
-            <strong>🎬 ${video.title}</strong><br>
-            📁 ${video.file || "No file"}<br>
-            🏷️ ${video.tags || "No tags"}<br>
-            📌 Status: ${video.status}<br>
+  const search = document.getElementById("searchInput")?.value.toLowerCase() || "";
 
-            <button onclick="openFile('${video.file}')">Open</button>
-            <button onclick="deleteVideo(${index})">Delete</button>
-          `;
+  let videos = JSON.parse(localStorage.getItem("videos")) || [];
 
-          list.appendChild(div);
-        });
-    }
+  videos
+    .filter(v =>
+      (v.title || "").toLowerCase().includes(search) ||
+      (v.tags || "").toLowerCase().includes(search) ||
+      (v.file || "").toLowerCase().includes(search)
+    )
+    .forEach((video, index) => {
 
-    function deleteVideo(index) {
-      let videos = JSON.parse(localStorage.getItem("videos")) || [];
-      videos.splice(index, 1);
-      localStorage.setItem("videos", JSON.stringify(videos));
-      loadVideos();
-    }
+      const div = document.createElement("div");
+      div.className = "card";
 
-    function openFile(file) {
-      alert("Local file reference: " + file + "\n\n(Real opening requires desktop app upgrade)");
-    }
+      div.innerHTML = `
+        <strong>🎬 ${video.title}</strong><br>
+        📁 ${video.file || "No file"}<br>
+        🏷️ ${video.tags || "No tags"}<br>
+        📌 ${video.status}<br>
 
-  </script>
+        <button onclick="previewVideo('${video.file}')">▶ Play</button>
+        <button onclick="deleteVideo(${index})">Delete</button>
+      `;
+
+      list.appendChild(div);
+    });
+}
+
+/* ---------------- VIDEO PREVIEW ---------------- */
+
+function previewVideo(file) {
+  alert("This would open video: " + file + "\n\n(Real file playback works if file is selected properly)");
+}
+
+/* ---------------- DELETE ---------------- */
+
+function deleteVideo(index) {
+  let videos = JSON.parse(localStorage.getItem("videos")) || [];
+  videos.splice(index, 1);
+  localStorage.setItem("videos", JSON.stringify(videos));
+  loadVideos();
+}
+
+/* ---------------- DRAG & DROP ---------------- */
+
+const dropZone = document.getElementById("dropZone");
+
+if (dropZone) {
+
+  dropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropZone.style.background = "#1e293b";
+  });
+
+  dropZone.addEventListener("dragleave", () => {
+    dropZone.style.background = "transparent";
+  });
+
+  dropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropZone.style.background = "transparent";
+
+    handleFiles(e.dataTransfer.files);
+  });
+}
+
+function handleFiles(files) {
+  let videos = JSON.parse(localStorage.getItem("videos")) || [];
+
+  for (let file of files) {
+    if (!file.type.includes("video")) continue;
+
+    videos.push({
+      title: file.name,
+      file: file.name,
+      tags: "dragged",
+      status: "Editing"
+    });
+  }
+
+  localStorage.setItem("videos", JSON.stringify(videos));
+  loadVideos();
+}
+
+</script>
 
 </body>
 </html>
