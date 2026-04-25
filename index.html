@@ -1,8 +1,8 @@
-<DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>RavenCorp</title>
+  <title>RavenCorp - Local Cloud</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -12,8 +12,8 @@
       font-family: 'Inter', Arial, sans-serif;
       background: linear-gradient(135deg, #0f172a, #1e293b);
       color: white;
-      text-align: center;
       margin: 0;
+      text-align: center;
     }
 
     .container {
@@ -52,29 +52,18 @@
       margin: 10px auto;
       padding: 15px;
       border-radius: 12px;
-      width: 340px;
+      width: 360px;
       text-align: left;
       box-shadow: 0 8px 20px rgba(0,0,0,0.3);
     }
 
-    .status {
+    .small {
       font-size: 0.85rem;
       opacity: 0.8;
     }
 
-    img {
-      width: 100%;
-      border-radius: 10px;
-      margin-bottom: 10px;
-    }
-
-    a {
-      color: #60a5fa;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
+    #searchInput {
+      width: 300px;
     }
   </style>
 </head>
@@ -84,7 +73,7 @@
   <!-- HOME -->
   <div class="container" id="home">
     <h1>RavenCorp</h1>
-    <p>Your video command center</p>
+    <p>Your local cloud video library</p>
     <button onclick="openDashboard()">Get Started</button>
   </div>
 
@@ -92,7 +81,7 @@
   <div class="container hidden" id="dashboard">
     <h1>Dashboard</h1>
     <button onclick="openIdeas()">🧠 Ideas</button>
-    <button onclick="openVideos()">🎬 Videos</button>
+    <button onclick="openVideos()">🎬 Video Cloud</button>
     <button onclick="goHome()">Back</button>
   </div>
 
@@ -100,7 +89,7 @@
   <div class="container hidden" id="ideasPage">
     <h1>🧠 Ideas</h1>
 
-    <input id="ideaInput" placeholder="Enter idea...">
+    <input id="ideaInput" placeholder="New idea...">
     <button onclick="addIdea()">Add</button>
 
     <div id="ideasList"></div>
@@ -110,15 +99,22 @@
 
   <!-- VIDEOS -->
   <div class="container hidden" id="videosPage">
-    <h1>🎬 Videos</h1>
+    <h1>🎬 Local Cloud Library</h1>
 
+    <!-- SEARCH -->
+    <input id="searchInput" placeholder="Search videos, tags, files..." oninput="loadVideos()">
+
+    <br><br>
+
+    <!-- INPUTS -->
     <input id="titleInput" placeholder="Video title">
-    <input id="linkInput" placeholder="YouTube link">
+    <input id="fileInput" placeholder="File name or path (e.g. video.mp4)">
+    <input id="tagInput" placeholder="Tags (gaming, vlog...)">
 
     <select id="statusInput">
       <option value="Idea">Idea</option>
       <option value="Editing">Editing</option>
-      <option value="Posted">Posted</option>
+      <option value="Finished">Finished</option>
     </select>
 
     <br>
@@ -131,6 +127,8 @@
   </div>
 
   <script>
+
+    // ---------------- NAVIGATION ----------------
     function hideAll() {
       document.getElementById("home").classList.add("hidden");
       document.getElementById("dashboard").classList.add("hidden");
@@ -191,7 +189,7 @@
 
         div.innerHTML = `
           ${idea}<br>
-          <button onclick="moveToVideos('${idea.replace(/'/g, "\\'")}')">➜ Make Video</button>
+          <button onclick="moveToVideos('${idea.replace(/'/g, "\\'")}')">➜ Convert to Video</button>
           <button onclick="deleteIdea(${index})">Delete</button>
         `;
 
@@ -208,7 +206,13 @@
 
     function moveToVideos(text) {
       let videos = JSON.parse(localStorage.getItem("videos")) || [];
-      videos.push({ title: text, link: "", status: "Idea" });
+      videos.push({
+        title: text,
+        file: "",
+        tags: "",
+        status: "Idea"
+      });
+
       localStorage.setItem("videos", JSON.stringify(videos));
       openVideos();
     }
@@ -216,66 +220,61 @@
     // ---------------- VIDEOS ----------------
     function addVideo() {
       const title = document.getElementById("titleInput").value.trim();
-      const link = document.getElementById("linkInput").value.trim();
+      const file = document.getElementById("fileInput").value.trim();
+      const tags = document.getElementById("tagInput").value.trim();
       const status = document.getElementById("statusInput").value;
 
       if (!title) return;
 
       let videos = JSON.parse(localStorage.getItem("videos")) || [];
-      videos.push({ title, link, status });
+
+      videos.push({
+        title,
+        file,
+        tags,
+        status
+      });
 
       localStorage.setItem("videos", JSON.stringify(videos));
 
       document.getElementById("titleInput").value = "";
-      document.getElementById("linkInput").value = "";
+      document.getElementById("fileInput").value = "";
+      document.getElementById("tagInput").value = "";
 
       loadVideos();
-    }
-
-    function getYouTubeID(url) {
-      try {
-        const u = new URL(url);
-        if (u.hostname.includes("youtu.be")) {
-          return u.pathname.slice(1);
-        }
-        return u.searchParams.get("v");
-      } catch {
-        return null;
-      }
     }
 
     function loadVideos() {
       const list = document.getElementById("videoList");
       list.innerHTML = "";
 
+      const search = document.getElementById("searchInput")?.value.toLowerCase() || "";
+
       let videos = JSON.parse(localStorage.getItem("videos")) || [];
 
-      videos.forEach((video, index) => {
-        const div = document.createElement("div");
-        div.className = "card";
+      videos
+        .filter(v =>
+          (v.title || "").toLowerCase().includes(search) ||
+          (v.tags || "").toLowerCase().includes(search) ||
+          (v.file || "").toLowerCase().includes(search)
+        )
+        .forEach((video, index) => {
 
-        let videoID = getYouTubeID(video.link);
+          const div = document.createElement("div");
+          div.className = "card";
 
-        let thumbnail = "";
-        let linkHTML = "";
+          div.innerHTML = `
+            <strong>🎬 ${video.title}</strong><br>
+            📁 ${video.file || "No file"}<br>
+            🏷️ ${video.tags || "No tags"}<br>
+            📌 Status: ${video.status}<br>
 
-        if (videoID) {
-          thumbnail = `<img src="https://img.youtube.com/vi/${videoID}/0.jpg">`;
-          linkHTML = `<a href="${video.link}" target="_blank">▶ Watch Video</a>`;
-        } else if (video.link) {
-          linkHTML = video.link;
-        }
+            <button onclick="openFile('${video.file}')">Open</button>
+            <button onclick="deleteVideo(${index})">Delete</button>
+          `;
 
-        div.innerHTML = `
-          ${thumbnail}
-          <strong>${video.title}</strong><br>
-          ${linkHTML}<br>
-          <span class="status">Status: ${video.status}</span><br>
-          <button onclick="deleteVideo(${index})">Delete</button>
-        `;
-
-        list.appendChild(div);
-      });
+          list.appendChild(div);
+        });
     }
 
     function deleteVideo(index) {
@@ -284,6 +283,11 @@
       localStorage.setItem("videos", JSON.stringify(videos));
       loadVideos();
     }
+
+    function openFile(file) {
+      alert("Local file reference: " + file + "\n\n(Real opening requires desktop app upgrade)");
+    }
+
   </script>
 
 </body>
