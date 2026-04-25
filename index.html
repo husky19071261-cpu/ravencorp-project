@@ -64,22 +64,12 @@
       width: 380px;
       border-radius: 12px;
       color: #93c5fd;
-      transition: 0.2s;
-    }
-
-    #dropZone:hover {
-      background: #1e293b;
     }
 
     video {
       width: 100%;
       border-radius: 10px;
       margin-top: 10px;
-    }
-
-    .small {
-      font-size: 0.85rem;
-      opacity: 0.8;
     }
 
     #searchInput {
@@ -131,8 +121,8 @@
 
   <!-- INPUTS -->
   <input id="titleInput" placeholder="Video title">
-  <input id="fileInput" placeholder="File name (optional)">
-  <input id="tagInput" placeholder="Tags (gaming, vlog...)">
+  <input id="fileInput" placeholder="Optional label">
+  <input id="tagInput" placeholder="Tags">
 
   <select id="statusInput">
     <option value="Idea">Idea</option>
@@ -229,11 +219,13 @@ function deleteIdea(index) {
 
 function moveToVideos(text) {
   let videos = JSON.parse(localStorage.getItem("videos")) || [];
+
   videos.push({
     title: text,
     file: "",
     tags: "",
-    status: "Idea"
+    status: "Idea",
+    url: null
   });
 
   localStorage.setItem("videos", JSON.stringify(videos));
@@ -252,7 +244,13 @@ function addVideo() {
 
   let videos = JSON.parse(localStorage.getItem("videos")) || [];
 
-  videos.push({ title, file, tags, status });
+  videos.push({
+    title,
+    file,
+    tags,
+    status,
+    url: null
+  });
 
   localStorage.setItem("videos", JSON.stringify(videos));
 
@@ -263,7 +261,7 @@ function addVideo() {
   loadVideos();
 }
 
-/* ---------------- SEARCH + RENDER ---------------- */
+/* ---------------- LOAD VIDEOS ---------------- */
 
 function loadVideos() {
   const list = document.getElementById("videoList");
@@ -290,7 +288,7 @@ function loadVideos() {
         🏷️ ${video.tags || "No tags"}<br>
         📌 ${video.status}<br>
 
-        <button onclick="previewVideo('${video.file}')">▶ Play</button>
+        <button onclick="previewVideo(${index})">▶ Play</button>
         <button onclick="deleteVideo(${index})">Delete</button>
       `;
 
@@ -298,10 +296,28 @@ function loadVideos() {
     });
 }
 
-/* ---------------- VIDEO PREVIEW ---------------- */
+/* ---------------- PLAY VIDEO ---------------- */
 
-function previewVideo(file) {
-  alert("This would open video: " + file + "\n\n(Real file playback works if file is selected properly)");
+function previewVideo(index) {
+  let videos = JSON.parse(localStorage.getItem("videos")) || [];
+  let video = videos[index];
+
+  if (!video || !video.url) {
+    alert("No playable file found. Drag & drop a video first.");
+    return;
+  }
+
+  const player = document.createElement("div");
+  player.className = "card";
+
+  player.innerHTML = `
+    <video controls autoplay>
+      <source src="${video.url}">
+    </video>
+    <button onclick="this.parentElement.remove()">Close</button>
+  `;
+
+  document.getElementById("videoList").prepend(player);
 }
 
 /* ---------------- DELETE ---------------- */
@@ -342,11 +358,14 @@ function handleFiles(files) {
   for (let file of files) {
     if (!file.type.includes("video")) continue;
 
+    const url = URL.createObjectURL(file); // REAL playback link
+
     videos.push({
       title: file.name,
       file: file.name,
       tags: "dragged",
-      status: "Editing"
+      status: "Editing",
+      url: url
     });
   }
 
