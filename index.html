@@ -17,7 +17,7 @@
     }
 
     .container {
-      margin-top: 100px;
+      margin-top: 60px;
       padding: 20px;
     }
 
@@ -25,30 +25,35 @@
       display: none;
     }
 
+    input, select {
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      margin: 5px;
+    }
+
     button {
       background: #3b82f6;
       border: none;
-      padding: 10px 20px;
+      padding: 8px 16px;
       color: white;
       border-radius: 10px;
       cursor: pointer;
       margin: 5px;
     }
 
-    input {
-      padding: 10px;
-      width: 250px;
-      border-radius: 10px;
-      border: none;
-      margin-right: 10px;
-    }
-
-    .idea {
+    .card {
       background: #1e293b;
       margin: 10px auto;
-      padding: 10px;
-      border-radius: 10px;
-      width: 300px;
+      padding: 15px;
+      border-radius: 12px;
+      width: 320px;
+      text-align: left;
+    }
+
+    .status {
+      font-size: 0.9rem;
+      opacity: 0.8;
     }
   </style>
 </head>
@@ -58,40 +63,74 @@
   <!-- HOME -->
   <div class="container" id="home">
     <h1>RavenCorp</h1>
-    <p>Your futuristic project hub</p>
-    <button onclick="openApp()">Get Started</button>
+    <p>Your video command center</p>
+    <button onclick="openDashboard()">Get Started</button>
   </div>
 
   <!-- DASHBOARD -->
   <div class="container hidden" id="dashboard">
     <h1>Dashboard</h1>
-    <button onclick="openYouTube()">YouTube Organizer</button>
+    <button onclick="openIdeas()">Ideas</button>
+    <button onclick="openVideos()">Videos</button>
     <button onclick="goHome()">Back</button>
   </div>
 
-  <!-- YOUTUBE TOOL -->
-  <div class="container hidden" id="youtube">
-    <h1>YouTube Idea Organizer</h1>
+  <!-- IDEAS -->
+  <div class="container hidden" id="ideasPage">
+    <h1>🧠 Ideas</h1>
 
-    <input id="ideaInput" placeholder="Enter video idea...">
+    <input id="ideaInput" placeholder="Enter idea...">
     <button onclick="addIdea()">Add</button>
 
     <div id="ideasList"></div>
 
+    <button onclick="goDashboard()">Back</button>
+  </div>
+
+  <!-- VIDEOS -->
+  <div class="container hidden" id="videosPage">
+    <h1>🎬 Videos</h1>
+
+    <input id="titleInput" placeholder="Video title">
+    <input id="linkInput" placeholder="Link or file name">
+
+    <select id="statusInput">
+      <option value="Idea">Idea</option>
+      <option value="Editing">Editing</option>
+      <option value="Posted">Posted</option>
+    </select>
+
     <br>
+    <button onclick="addVideo()">Add Video</button>
+
+    <div id="videoList"></div>
+
     <button onclick="goDashboard()">Back</button>
   </div>
 
   <script>
-    function openApp() {
+    function hideAll() {
+      document.getElementById("home").classList.add("hidden");
+      document.getElementById("dashboard").classList.add("hidden");
+      document.getElementById("ideasPage").classList.add("hidden");
+      document.getElementById("videosPage").classList.add("hidden");
+    }
+
+    function openDashboard() {
       hideAll();
       document.getElementById("dashboard").classList.remove("hidden");
     }
 
-    function openYouTube() {
+    function openIdeas() {
       hideAll();
-      document.getElementById("youtube").classList.remove("hidden");
+      document.getElementById("ideasPage").classList.remove("hidden");
       loadIdeas();
+    }
+
+    function openVideos() {
+      hideAll();
+      document.getElementById("videosPage").classList.remove("hidden");
+      loadVideos();
     }
 
     function goHome() {
@@ -104,20 +143,14 @@
       document.getElementById("dashboard").classList.remove("hidden");
     }
 
-    function hideAll() {
-      document.getElementById("home").classList.add("hidden");
-      document.getElementById("dashboard").classList.add("hidden");
-      document.getElementById("youtube").classList.add("hidden");
-    }
-
+    // IDEAS
     function addIdea() {
       const input = document.getElementById("ideaInput");
-      const ideaText = input.value.trim();
-
-      if (ideaText === "") return;
+      const text = input.value.trim();
+      if (!text) return;
 
       let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
-      ideas.push(ideaText);
+      ideas.push(text);
       localStorage.setItem("ideas", JSON.stringify(ideas));
 
       input.value = "";
@@ -132,9 +165,14 @@
 
       ideas.forEach((idea, index) => {
         const div = document.createElement("div");
-        div.className = "idea";
-        div.innerHTML = idea + 
-          `<br><button onclick="deleteIdea(${index})">Delete</button>`;
+        div.className = "card";
+
+        div.innerHTML = `
+          ${idea}<br>
+          <button onclick="moveToVideos('${idea.replace(/'/g, "\\'")}')">Make Video</button>
+          <button onclick="deleteIdea(${index})">Delete</button>
+        `;
+
         list.appendChild(div);
       });
     }
@@ -144,6 +182,59 @@
       ideas.splice(index, 1);
       localStorage.setItem("ideas", JSON.stringify(ideas));
       loadIdeas();
+    }
+
+    function moveToVideos(ideaText) {
+      let videos = JSON.parse(localStorage.getItem("videos")) || [];
+      videos.push({ title: ideaText, link: "", status: "Idea" });
+      localStorage.setItem("videos", JSON.stringify(videos));
+      openVideos();
+    }
+
+    // VIDEOS
+    function addVideo() {
+      const title = document.getElementById("titleInput").value.trim();
+      const link = document.getElementById("linkInput").value.trim();
+      const status = document.getElementById("statusInput").value;
+
+      if (!title) return;
+
+      let videos = JSON.parse(localStorage.getItem("videos")) || [];
+      videos.push({ title, link, status });
+      localStorage.setItem("videos", JSON.stringify(videos));
+
+      document.getElementById("titleInput").value = "";
+      document.getElementById("linkInput").value = "";
+
+      loadVideos();
+    }
+
+    function loadVideos() {
+      const list = document.getElementById("videoList");
+      list.innerHTML = "";
+
+      let videos = JSON.parse(localStorage.getItem("videos")) || [];
+
+      videos.forEach((video, index) => {
+        const div = document.createElement("div");
+        div.className = "card";
+
+        div.innerHTML = `
+          <strong>${video.title}</strong><br>
+          <span>${video.link || ""}</span><br>
+          <span class="status">Status: ${video.status}</span><br>
+          <button onclick="deleteVideo(${index})">Delete</button>
+        `;
+
+        list.appendChild(div);
+      });
+    }
+
+    function deleteVideo(index) {
+      let videos = JSON.parse(localStorage.getItem("videos")) || [];
+      videos.splice(index, 1);
+      localStorage.setItem("videos", JSON.stringify(videos));
+      loadVideos();
     }
   </script>
 
