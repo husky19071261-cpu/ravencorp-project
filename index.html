@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>RavenCorp - Local Cloud</title>
+<title>RavenCorp</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -10,73 +10,123 @@ body {
   font-family: Arial;
   background: #0f172a;
   color: white;
-  text-align: center;
+  margin: 0;
+}
+
+/* NAVBAR */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 25px;
+  background: #020617;
+}
+
+.page {
+  padding: 20px;
 }
 
 .hidden { display: none; }
 
+/* GRID */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 15px;
-  max-width: 1000px;
-  margin: auto;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
 }
 
+/* CARD */
 .card {
   background: #1e293b;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: 0.2s;
+}
+
+.card:hover {
+  transform: scale(1.03);
+}
+
+.thumbnail {
+  height: 160px;
+  background: #020617;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+}
+
+.card-content {
   padding: 10px;
-  border-radius: 10px;
+}
+
+button {
+  background: #3b82f6;
+  border: none;
+  padding: 8px 12px;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #2563eb;
 }
 
 #dropZone {
   border: 2px dashed #3b82f6;
   padding: 20px;
-  margin: 10px auto;
-  width: 350px;
+  margin-bottom: 20px;
+  border-radius: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>RavenCorp</h1>
+<!-- NAV -->
+<div class="navbar">
+  <h2>RavenCorp</h2>
+  <div>
+    <button onclick="showVideos()">🎬 Videos</button>
+    <button onclick="showIdeas()">🧠 Ideas</button>
+  </div>
+</div>
 
-<button onclick="showVideos()">🎬 Videos</button>
-<button onclick="showIdeas()">🧠 Ideas</button>
-
-<div id="videosPage" class="hidden">
-<h2>Video Cloud</h2>
+<!-- VIDEOS -->
+<div id="videosPage" class="page">
 
 <div id="dropZone">📁 Drag Videos Here</div>
 
 <input id="search" placeholder="Search..." oninput="loadVideos()">
 
+<br><br>
+
 <div id="videoList" class="grid"></div>
 </div>
 
-<div id="ideasPage" class="hidden">
-<h2>Ideas</h2>
+<!-- IDEAS -->
+<div id="ideasPage" class="page hidden">
 
-<input id="ideaInput">
+<input id="ideaInput" placeholder="New idea...">
 <button onclick="addIdea()">Add</button>
 
 <div id="ideasList"></div>
+
 </div>
 
 <script>
 
-/* ---------- DATABASE ---------- */
+/* ---------- DB ---------- */
 let db;
 
-const request = indexedDB.open("RavenCorpDB", 1);
+const req = indexedDB.open("RavenCorpDB", 1);
 
-request.onupgradeneeded = e => {
+req.onupgradeneeded = e => {
   db = e.target.result;
   db.createObjectStore("videos", { keyPath: "id" });
 };
 
-request.onsuccess = e => {
+req.onsuccess = e => {
   db = e.target.result;
   loadVideos();
 };
@@ -138,13 +188,17 @@ function loadVideos() {
     let video = cursor.value;
 
     if (video.title.toLowerCase().includes(search)) {
+
       let div = document.createElement("div");
       div.className = "card";
 
       div.innerHTML = `
-        ${video.title}<br>
-        <button onclick="playVideo(${video.id})">▶ Play</button>
-        <button onclick="deleteVideo(${video.id})">Delete</button>
+        <div class="thumbnail">🎬</div>
+        <div class="card-content">
+          <strong>${video.title}</strong><br><br>
+          <button onclick="playVideo(${video.id})">▶ Play</button>
+          <button onclick="deleteVideo(${video.id})">Delete</button>
+        </div>
       `;
 
       list.appendChild(div);
@@ -154,7 +208,7 @@ function loadVideos() {
   };
 }
 
-/* ---------- PLAY ---------- */
+/* ---------- PLAY INLINE ---------- */
 function playVideo(id) {
   let tx = db.transaction("videos", "readonly");
   let store = tx.objectStore("videos");
