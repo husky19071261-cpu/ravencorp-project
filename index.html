@@ -1,379 +1,194 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>RavenCorp - Local Cloud</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>RavenCorp</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+body {
+  font-family: Arial;
+  background: #0f172a;
+  color: white;
+  text-align: center;
+}
 
-  <style>
-    body {
-      font-family: 'Inter', Arial, sans-serif;
-      background: linear-gradient(135deg, #0f172a, #1e293b);
-      color: white;
-      margin: 0;
-      text-align: center;
-    }
+.hidden { display: none; }
 
-    .container {
-      margin-top: 60px;
-      padding: 20px;
-    }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 15px;
+  max-width: 1000px;
+  margin: auto;
+}
 
-    .hidden {
-      display: none;
-    }
+.card {
+  background: #1e293b;
+  padding: 10px;
+  border-radius: 10px;
+}
 
-    input, select {
-      padding: 10px;
-      border-radius: 10px;
-      border: none;
-      margin: 5px;
-      width: 220px;
-    }
-
-    button {
-      background: #3b82f6;
-      border: none;
-      padding: 10px 16px;
-      color: white;
-      border-radius: 10px;
-      cursor: pointer;
-      margin: 5px;
-    }
-
-    button:hover {
-      background: #2563eb;
-    }
-
-    /* 🔥 GRID LAYOUT */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 15px;
-      max-width: 1100px;
-      margin: 20px auto;
-    }
-
-    .card {
-      background: #1e293b;
-      padding: 15px;
-      border-radius: 12px;
-      text-align: left;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-      transition: transform 0.15s;
-    }
-
-    .card:hover {
-      transform: scale(1.03);
-    }
-
-    #dropZone {
-      border: 2px dashed #3b82f6;
-      padding: 20px;
-      margin: 10px auto;
-      width: 380px;
-      border-radius: 12px;
-      color: #93c5fd;
-    }
-
-    video {
-      width: 100%;
-      border-radius: 10px;
-      margin-top: 10px;
-    }
-
-    #searchInput {
-      width: 320px;
-    }
-  </style>
+#dropZone {
+  border: 2px dashed #3b82f6;
+  padding: 20px;
+  margin: 10px auto;
+  width: 350px;
+}
+</style>
 </head>
 
 <body>
 
-<!-- HOME -->
-<div class="container" id="home">
-  <h1>RavenCorp</h1>
-  <p>Your local video cloud system</p>
-  <button onclick="openDashboard()">Enter</button>
+<h1>RavenCorp</h1>
+
+<button onclick="showVideos()">🎬 Videos</button>
+<button onclick="showIdeas()">🧠 Ideas</button>
+
+<div id="videosPage" class="hidden">
+
+<h2>Video Cloud</h2>
+
+<div id="dropZone">📁 Drag Videos Here</div>
+
+<input id="search" placeholder="Search..." oninput="loadVideos()">
+
+<div id="videoList" class="grid"></div>
+
 </div>
 
-<!-- DASHBOARD -->
-<div class="container hidden" id="dashboard">
-  <h1>Dashboard</h1>
-  <button onclick="openIdeas()">🧠 Ideas</button>
-  <button onclick="openVideos()">🎬 Video Cloud</button>
-  <button onclick="goHome()">Back</button>
-</div>
+<div id="ideasPage" class="hidden">
+<h2>Ideas</h2>
 
-<!-- IDEAS -->
-<div class="container hidden" id="ideasPage">
-  <h1>🧠 Ideas</h1>
+<input id="ideaInput">
+<button onclick="addIdea()">Add</button>
 
-  <input id="ideaInput" placeholder="New idea...">
-  <button onclick="addIdea()">Add</button>
+<div id="ideasList"></div>
 
-  <div id="ideasList" class="grid"></div>
-
-  <button onclick="goDashboard()">Back</button>
-</div>
-
-<!-- VIDEOS -->
-<div class="container hidden" id="videosPage">
-  <h1>🎬 Local Cloud</h1>
-
-  <!-- DROP ZONE -->
-  <div id="dropZone">📁 Drag & Drop Videos Here</div>
-
-  <!-- SEARCH -->
-  <input id="searchInput" placeholder="Search videos..." oninput="loadVideos()">
-
-  <br><br>
-
-  <!-- INPUTS -->
-  <input id="titleInput" placeholder="Video title">
-  <input id="fileInput" placeholder="Optional label">
-  <input id="tagInput" placeholder="Tags">
-
-  <select id="statusInput">
-    <option value="Idea">Idea</option>
-    <option value="Editing">Editing</option>
-    <option value="Finished">Finished</option>
-  </select>
-
-  <br>
-
-  <button onclick="addVideo()">Add Video</button>
-
-  <!-- 🔥 GRID HERE -->
-  <div id="videoList" class="grid"></div>
-
-  <button onclick="goDashboard()">Back</button>
 </div>
 
 <script>
 
-function hideAll() {
-  document.getElementById("home").classList.add("hidden");
-  document.getElementById("dashboard").classList.add("hidden");
-  document.getElementById("ideasPage").classList.add("hidden");
-  document.getElementById("videosPage").classList.add("hidden");
-}
+/* ---------- SESSION STORAGE ---------- */
+let sessionFiles = {};
 
-function openDashboard() {
-  hideAll();
-  document.getElementById("dashboard").classList.remove("hidden");
-}
-
-function openIdeas() {
-  hideAll();
-  document.getElementById("ideasPage").classList.remove("hidden");
-  loadIdeas();
-}
-
-function openVideos() {
-  hideAll();
+/* ---------- NAV ---------- */
+function showVideos() {
   document.getElementById("videosPage").classList.remove("hidden");
+  document.getElementById("ideasPage").classList.add("hidden");
   loadVideos();
 }
 
-function goHome() {
-  hideAll();
-  document.getElementById("home").classList.remove("hidden");
-}
-
-function goDashboard() {
-  hideAll();
-  document.getElementById("dashboard").classList.remove("hidden");
-}
-
-/* ---------------- IDEAS ---------------- */
-
-function addIdea() {
-  const input = document.getElementById("ideaInput");
-  const text = input.value.trim();
-  if (!text) return;
-
-  let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
-  ideas.push(text);
-  localStorage.setItem("ideas", JSON.stringify(ideas));
-
-  input.value = "";
+function showIdeas() {
+  document.getElementById("ideasPage").classList.remove("hidden");
+  document.getElementById("videosPage").classList.add("hidden");
   loadIdeas();
 }
 
-function loadIdeas() {
-  const list = document.getElementById("ideasList");
-  list.innerHTML = "";
+/* ---------- DRAG DROP ---------- */
+const dropZone = document.getElementById("dropZone");
 
-  let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
+dropZone.addEventListener("dragover", e => {
+  e.preventDefault();
+});
 
-  ideas.forEach((idea, index) => {
-    const div = document.createElement("div");
-    div.className = "card";
+dropZone.addEventListener("drop", e => {
+  e.preventDefault();
+  handleFiles(e.dataTransfer.files);
+});
 
-    div.innerHTML = `
-      ${idea}<br>
-      <button onclick="moveToVideos('${idea.replace(/'/g,"\\'")}')">➜ Make Video</button>
-      <button onclick="deleteIdea(${index})">Delete</button>
-    `;
-
-    list.appendChild(div);
-  });
-}
-
-function deleteIdea(index) {
-  let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
-  ideas.splice(index, 1);
-  localStorage.setItem("ideas", JSON.stringify(ideas));
-  loadIdeas();
-}
-
-function moveToVideos(text) {
+function handleFiles(files) {
   let videos = JSON.parse(localStorage.getItem("videos")) || [];
 
-  videos.push({
-    title: text,
-    file: "",
-    tags: "",
-    status: "Idea",
-    url: null
-  });
+  for (let file of files) {
+    if (!file.type.startsWith("video")) continue;
+
+    let id = Date.now() + Math.random();
+
+    sessionFiles[id] = file;
+
+    videos.push({
+      id: id,
+      title: file.name
+    });
+  }
 
   localStorage.setItem("videos", JSON.stringify(videos));
-  openVideos();
-}
-
-/* ---------------- VIDEOS ---------------- */
-
-function addVideo() {
-  const title = document.getElementById("titleInput").value.trim();
-  const file = document.getElementById("fileInput").value.trim();
-  const tags = document.getElementById("tagInput").value.trim();
-  const status = document.getElementById("statusInput").value;
-
-  if (!title) return;
-
-  let videos = JSON.parse(localStorage.getItem("videos")) || [];
-
-  videos.push({ title, file, tags, status, url: null });
-
-  localStorage.setItem("videos", JSON.stringify(videos));
-
-  document.getElementById("titleInput").value = "";
-  document.getElementById("fileInput").value = "";
-  document.getElementById("tagInput").value = "";
-
   loadVideos();
 }
 
+/* ---------- LOAD VIDEOS ---------- */
 function loadVideos() {
   const list = document.getElementById("videoList");
   list.innerHTML = "";
 
-  const search = document.getElementById("searchInput")?.value.toLowerCase() || "";
+  let search = document.getElementById("search").value.toLowerCase();
 
   let videos = JSON.parse(localStorage.getItem("videos")) || [];
 
   videos
-    .filter(v =>
-      (v.title || "").toLowerCase().includes(search) ||
-      (v.tags || "").toLowerCase().includes(search) ||
-      (v.file || "").toLowerCase().includes(search)
-    )
-    .forEach((video, index) => {
+    .filter(v => v.title.toLowerCase().includes(search))
+    .forEach(v => {
 
-      const div = document.createElement("div");
+      let div = document.createElement("div");
       div.className = "card";
 
       div.innerHTML = `
-        <strong>🎬 ${video.title}</strong><br>
-        📁 ${video.file || "No file"}<br>
-        🏷️ ${video.tags || "No tags"}<br>
-        📌 ${video.status}<br>
-
-        <button onclick="previewVideo(${index})">▶ Play</button>
-        <button onclick="deleteVideo(${index})">Delete</button>
+        ${v.title}<br>
+        <button onclick="playVideo(${v.id})">▶ Play</button>
       `;
 
       list.appendChild(div);
     });
 }
 
-/* ---------------- PLAYER ---------------- */
+/* ---------- PLAY ---------- */
+function playVideo(id) {
+  let file = sessionFiles[id];
 
-function previewVideo(index) {
-  let videos = JSON.parse(localStorage.getItem("videos")) || [];
-  let video = videos[index];
-
-  if (!video || !video.url) {
-    alert("No playable file. Drag & drop a video first.");
+  if (!file) {
+    alert("Re-drag the video to play it.");
     return;
   }
 
-  const player = document.createElement("div");
+  let url = URL.createObjectURL(file);
+
+  let player = document.createElement("div");
   player.className = "card";
 
   player.innerHTML = `
-    <video controls autoplay>
-      <source src="${video.url}">
+    <video controls autoplay width="100%">
+      <source src="${url}">
     </video>
     <button onclick="this.parentElement.remove()">Close</button>
   `;
 
-  document.getElementById("videoList").prepend(player);
+  document.body.appendChild(player);
 }
 
-/* ---------------- DELETE ---------------- */
+/* ---------- IDEAS ---------- */
+function addIdea() {
+  let text = document.getElementById("ideaInput").value;
 
-function deleteVideo(index) {
-  let videos = JSON.parse(localStorage.getItem("videos")) || [];
-  videos.splice(index, 1);
-  localStorage.setItem("videos", JSON.stringify(videos));
-  loadVideos();
+  let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
+  ideas.push(text);
+
+  localStorage.setItem("ideas", JSON.stringify(ideas));
+  loadIdeas();
 }
 
-/* ---------------- DRAG & DROP ---------------- */
+function loadIdeas() {
+  let list = document.getElementById("ideasList");
+  list.innerHTML = "";
 
-const dropZone = document.getElementById("dropZone");
+  let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
 
-if (dropZone) {
-  dropZone.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    dropZone.style.background = "#1e293b";
+  ideas.forEach(i => {
+    let div = document.createElement("div");
+    div.className = "card";
+    div.textContent = i;
+    list.appendChild(div);
   });
-
-  dropZone.addEventListener("dragleave", () => {
-    dropZone.style.background = "transparent";
-  });
-
-  dropZone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    dropZone.style.background = "transparent";
-    handleFiles(e.dataTransfer.files);
-  });
-}
-
-function handleFiles(files) {
-  let videos = JSON.parse(localStorage.getItem("videos")) || [];
-
-  for (let file of files) {
-    if (!file.type.includes("video")) continue;
-
-    const url = URL.createObjectURL(file);
-
-    videos.push({
-      title: file.name,
-      file: file.name,
-      tags: "dragged",
-      status: "Editing",
-      url: url
-    });
-  }
-
-  localStorage.setItem("videos", JSON.stringify(videos));
-  loadVideos();
 }
 
 </script>
