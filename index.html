@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>RavenCorp</title>
+<title>RavenCorp - Local Cloud</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -13,52 +13,40 @@ body {
   margin: 0;
 }
 
-/* NAVBAR */
+/* NAV */
 .navbar {
   display: flex;
   justify-content: space-between;
-  padding: 15px 25px;
+  padding: 15px;
   background: #020617;
 }
 
-.page {
-  padding: 20px;
-}
-
+/* PAGE */
+.page { padding: 20px; }
 .hidden { display: none; }
 
 /* GRID */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 15px;
 }
 
 /* CARD */
 .card {
   background: #1e293b;
-  border-radius: 12px;
-  overflow: hidden;
-  transition: 0.2s;
-}
-
-.card:hover {
-  transform: scale(1.03);
-}
-
-.thumbnail {
-  height: 160px;
-  background: #020617;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
-}
-
-.card-content {
   padding: 10px;
+  border-radius: 10px;
 }
 
+/* DROP ZONE */
+#dropZone {
+  border: 2px dashed #3b82f6;
+  padding: 20px;
+  margin-bottom: 15px;
+}
+
+/* BUTTON */
 button {
   background: #3b82f6;
   border: none;
@@ -67,23 +55,11 @@ button {
   border-radius: 8px;
   cursor: pointer;
 }
-
-button:hover {
-  background: #2563eb;
-}
-
-#dropZone {
-  border: 2px dashed #3b82f6;
-  padding: 20px;
-  margin-bottom: 20px;
-  border-radius: 10px;
-}
 </style>
 </head>
 
 <body>
 
-<!-- NAV -->
 <div class="navbar">
   <h2>RavenCorp</h2>
   <div>
@@ -95,47 +71,37 @@ button:hover {
 <!-- VIDEOS -->
 <div id="videosPage" class="page">
 
-<div id="dropZone">📁 Drag Videos Here</div>
+<button onclick="loadFolder()">📂 Load Video Folder</button>
 
-<input id="search" placeholder="Search..." oninput="loadVideos()">
+<div id="dropZone">📁 Drag Videos Here (optional)</div>
+
+<input id="searchInput" placeholder="Search..." oninput="renderVideos()">
 
 <br><br>
 
 <div id="videoList" class="grid"></div>
+
 </div>
 
 <!-- IDEAS -->
 <div id="ideasPage" class="page hidden">
-
 <input id="ideaInput" placeholder="New idea...">
 <button onclick="addIdea()">Add</button>
 
 <div id="ideasList"></div>
-
 </div>
 
 <script>
 
-/* ---------- DB ---------- */
-let db;
-
-const req = indexedDB.open("RavenCorpDB", 1);
-
-req.onupgradeneeded = e => {
-  db = e.target.result;
-  db.createObjectStore("videos", { keyPath: "id" });
-};
-
-req.onsuccess = e => {
-  db = e.target.result;
-  loadVideos();
-};
+/* ---------- STORAGE ---------- */
+let folderFiles = [];
+let draggedFiles = [];
 
 /* ---------- NAV ---------- */
 function showVideos() {
   document.getElementById("videosPage").classList.remove("hidden");
   document.getElementById("ideasPage").classList.add("hidden");
-  loadVideos();
+  renderVideos();
 }
 
 function showIdeas() {
@@ -144,102 +110,84 @@ function showIdeas() {
   loadIdeas();
 }
 
-/* ---------- DRAG DROP ---------- */
+/* ---------- FOLDER LOAD (REAL STORAGE) ---------- */
+async function loadFolder() {
+  const dir = await window.showDirectoryPicker();
+
+  folderFiles = [];
+
+  for await (const entry of dir.values()) {
+    if (entry.kind === "file") {
+      const file = await entry.getFile();
+      if (file.type.startsWith("video")) {
+        folderFiles.push(file);
+      }
+    }
+  }
+
+  renderVideos();
+}
+
+/* ---------- DRAG DROP (OPTIONAL) ---------- */
 const dropZone = document.getElementById("dropZone");
 
 dropZone.addEventListener("dragover", e => e.preventDefault());
 
 dropZone.addEventListener("drop", e => {
   e.preventDefault();
-  handleFiles(e.dataTransfer.files);
-});
 
-function handleFiles(files) {
-  for (let file of files) {
-    if (!file.type.startsWith("video")) continue;
-
-    let tx = db.transaction("videos", "readwrite");
-    let store = tx.objectStore("videos");
-
-    store.add({
-      id: Date.now() + Math.random(),
-      title: file.name,
-      fileData: file
-    });
+  for (let file of e.dataTransfer.files) {
+    if (file.type.startsWith("video")) {
+      draggedFiles.push(file);
+    }
   }
 
-  setTimeout(loadVideos, 200);
-}
+  renderVideos();
+});
 
-/* ---------- LOAD VIDEOS ---------- */
-function loadVideos() {
+/* ---------- RENDER VIDEOS ---------- */
+function renderVideos() {
   const list = document.getElementById("videoList");
   list.innerHTML = "";
 
-  const search = document.getElementById("search").value.toLowerCase();
+  const search = document.getElementById("searchInput").value.toLowerCase();
 
-  let tx = db.transaction("videos", "readonly");
-  let store = tx.objectStore("videos");
+  const allVideos = [...folderFiles, ...draggedFiles];
 
-  store.openCursor().onsuccess = e => {
-    let cursor = e.target.result;
-    if (!cursor) return;
+  allVideos
+    .filter(v => v.name.toLowerCase().includes(search))
+    .forEach((file, index) => {
 
-    let video = cursor.value;
-
-    if (video.title.toLowerCase().includes(search)) {
-
-      let div = document.createElement("div");
+      const div = document.createElement("div");
       div.className = "card";
 
       div.innerHTML = `
-        <div class="thumbnail">🎬</div>
-        <div class="card-content">
-          <strong>${video.title}</strong><br><br>
-          <button onclick="playVideo(${video.id})">▶ Play</button>
-          <button onclick="deleteVideo(${video.id})">Delete</button>
-        </div>
+        <strong>🎬 ${file.name}</strong><br><br>
+        <button onclick="playVideo(${index})">▶ Play</button>
       `;
 
       list.appendChild(div);
-    }
-
-    cursor.continue();
-  };
+    });
 }
 
-/* ---------- PLAY INLINE ---------- */
-function playVideo(id) {
-  let tx = db.transaction("videos", "readonly");
-  let store = tx.objectStore("videos");
+/* ---------- PLAY ---------- */
+function playVideo(index) {
+  const allVideos = [...folderFiles, ...draggedFiles];
+  const file = allVideos[index];
 
-  let request = store.get(id);
+  const url = URL.createObjectURL(file);
 
-  request.onsuccess = () => {
-    let file = request.result.fileData;
-    let url = URL.createObjectURL(file);
+  const player = document.createElement("div");
+  player.className = "card";
 
-    let player = document.createElement("div");
-    player.className = "card";
+  player.innerHTML = `
+    <video controls autoplay width="100%">
+      <source src="${url}">
+    </video>
+    <button onclick="this.parentElement.remove()">Close</button>
+  `;
 
-    player.innerHTML = `
-      <video controls autoplay width="100%">
-        <source src="${url}">
-      </video>
-      <button onclick="this.parentElement.remove()">Close</button>
-    `;
-
-    document.body.appendChild(player);
-  };
-}
-
-/* ---------- DELETE ---------- */
-function deleteVideo(id) {
-  let tx = db.transaction("videos", "readwrite");
-  let store = tx.objectStore("videos");
-  store.delete(id);
-
-  setTimeout(loadVideos, 200);
+  document.body.appendChild(player);
 }
 
 /* ---------- IDEAS ---------- */
