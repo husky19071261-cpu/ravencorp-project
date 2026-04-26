@@ -47,14 +47,26 @@
       background: #2563eb;
     }
 
+    /* 🔥 GRID LAYOUT */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 15px;
+      max-width: 1100px;
+      margin: 20px auto;
+    }
+
     .card {
       background: #1e293b;
-      margin: 10px auto;
       padding: 15px;
       border-radius: 12px;
-      width: 380px;
       text-align: left;
       box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      transition: transform 0.15s;
+    }
+
+    .card:hover {
+      transform: scale(1.03);
     }
 
     #dropZone {
@@ -102,7 +114,7 @@
   <input id="ideaInput" placeholder="New idea...">
   <button onclick="addIdea()">Add</button>
 
-  <div id="ideasList"></div>
+  <div id="ideasList" class="grid"></div>
 
   <button onclick="goDashboard()">Back</button>
 </div>
@@ -134,7 +146,8 @@
 
   <button onclick="addVideo()">Add Video</button>
 
-  <div id="videoList"></div>
+  <!-- 🔥 GRID HERE -->
+  <div id="videoList" class="grid"></div>
 
   <button onclick="goDashboard()">Back</button>
 </div>
@@ -244,13 +257,7 @@ function addVideo() {
 
   let videos = JSON.parse(localStorage.getItem("videos")) || [];
 
-  videos.push({
-    title,
-    file,
-    tags,
-    status,
-    url: null
-  });
+  videos.push({ title, file, tags, status, url: null });
 
   localStorage.setItem("videos", JSON.stringify(videos));
 
@@ -260,8 +267,6 @@ function addVideo() {
 
   loadVideos();
 }
-
-/* ---------------- LOAD VIDEOS ---------------- */
 
 function loadVideos() {
   const list = document.getElementById("videoList");
@@ -296,14 +301,14 @@ function loadVideos() {
     });
 }
 
-/* ---------------- PLAY VIDEO ---------------- */
+/* ---------------- PLAYER ---------------- */
 
 function previewVideo(index) {
   let videos = JSON.parse(localStorage.getItem("videos")) || [];
   let video = videos[index];
 
   if (!video || !video.url) {
-    alert("No playable file found. Drag & drop a video first.");
+    alert("No playable file. Drag & drop a video first.");
     return;
   }
 
@@ -334,7 +339,6 @@ function deleteVideo(index) {
 const dropZone = document.getElementById("dropZone");
 
 if (dropZone) {
-
   dropZone.addEventListener("dragover", (e) => {
     e.preventDefault();
     dropZone.style.background = "#1e293b";
@@ -347,7 +351,6 @@ if (dropZone) {
   dropZone.addEventListener("drop", (e) => {
     e.preventDefault();
     dropZone.style.background = "transparent";
-
     handleFiles(e.dataTransfer.files);
   });
 }
@@ -358,7 +361,7 @@ function handleFiles(files) {
   for (let file of files) {
     if (!file.type.includes("video")) continue;
 
-    const url = URL.createObjectURL(file); // REAL playback link
+    const url = URL.createObjectURL(file);
 
     videos.push({
       title: file.name,
