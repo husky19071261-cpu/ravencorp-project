@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>RavenCorp</title>
+<title>RavenCorp - Local Cloud</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -45,9 +45,7 @@ body {
 <button onclick="showVideos()">🎬 Videos</button>
 <button onclick="showIdeas()">🧠 Ideas</button>
 
-<!-- VIDEOS -->
 <div id="videosPage" class="hidden">
-
 <h2>Video Cloud</h2>
 
 <div id="dropZone">📁 Drag Videos Here</div>
@@ -55,10 +53,8 @@ body {
 <input id="search" placeholder="Search..." oninput="loadVideos()">
 
 <div id="videoList" class="grid"></div>
-
 </div>
 
-<!-- IDEAS -->
 <div id="ideasPage" class="hidden">
 <h2>Ideas</h2>
 
@@ -66,15 +62,26 @@ body {
 <button onclick="addIdea()">Add</button>
 
 <div id="ideasList"></div>
-
 </div>
 
 <script>
 
-/* 🔥 SESSION FILE STORAGE (FIXES PLAYBACK) */
-let sessionFiles = {};
+/* ---------- DATABASE ---------- */
+let db;
 
-/* NAV */
+const request = indexedDB.open("RavenCorpDB", 1);
+
+request.onupgradeneeded = e => {
+  db = e.target.result;
+  db.createObjectStore("videos", { keyPath: "id" });
+};
+
+request.onsuccess = e => {
+  db = e.target.result;
+  loadVideos();
+};
+
+/* ---------- NAV ---------- */
 function showVideos() {
   document.getElementById("videosPage").classList.remove("hidden");
   document.getElementById("ideasPage").classList.add("hidden");
@@ -87,12 +94,10 @@ function showIdeas() {
   loadIdeas();
 }
 
-/* DRAG & DROP */
+/* ---------- DRAG DROP ---------- */
 const dropZone = document.getElementById("dropZone");
 
-dropZone.addEventListener("dragover", e => {
-  e.preventDefault();
-});
+dropZone.addEventListener("dragover", e => e.preventDefault());
 
 dropZone.addEventListener("drop", e => {
   e.preventDefault();
@@ -100,77 +105,92 @@ dropZone.addEventListener("drop", e => {
 });
 
 function handleFiles(files) {
-  let videos = JSON.parse(localStorage.getItem("videos")) || [];
-
   for (let file of files) {
     if (!file.type.startsWith("video")) continue;
 
-    const id = Date.now() + Math.random();
+    let tx = db.transaction("videos", "readwrite");
+    let store = tx.objectStore("videos");
 
-    sessionFiles[id] = file;
-
-    videos.push({
-      id: id,
-      title: file.name
+    store.add({
+      id: Date.now() + Math.random(),
+      title: file.name,
+      fileData: file
     });
   }
 
-  localStorage.setItem("videos", JSON.stringify(videos));
-  loadVideos();
+  setTimeout(loadVideos, 200);
 }
 
-/* LOAD VIDEOS */
+/* ---------- LOAD VIDEOS ---------- */
 function loadVideos() {
   const list = document.getElementById("videoList");
   list.innerHTML = "";
 
   const search = document.getElementById("search").value.toLowerCase();
 
-  let videos = JSON.parse(localStorage.getItem("videos")) || [];
+  let tx = db.transaction("videos", "readonly");
+  let store = tx.objectStore("videos");
 
-  videos
-    .filter(v => v.title.toLowerCase().includes(search))
-    .forEach(v => {
+  store.openCursor().onsuccess = e => {
+    let cursor = e.target.result;
+    if (!cursor) return;
 
-      const div = document.createElement("div");
+    let video = cursor.value;
+
+    if (video.title.toLowerCase().includes(search)) {
+      let div = document.createElement("div");
       div.className = "card";
 
       div.innerHTML = `
-        ${v.title}<br>
-        <button onclick="playVideo(${v.id})">▶ Play</button>
+        ${video.title}<br>
+        <button onclick="playVideo(${video.id})">▶ Play</button>
+        <button onclick="deleteVideo(${video.id})">Delete</button>
       `;
 
       list.appendChild(div);
-    });
+    }
+
+    cursor.continue();
+  };
 }
 
-/* PLAY VIDEO */
+/* ---------- PLAY ---------- */
 function playVideo(id) {
-  const file = sessionFiles[id];
+  let tx = db.transaction("videos", "readonly");
+  let store = tx.objectStore("videos");
 
-  if (!file) {
-    alert("Re-drag the video to play it.");
-    return;
-  }
+  let request = store.get(id);
 
-  const url = URL.createObjectURL(file);
+  request.onsuccess = () => {
+    let file = request.result.fileData;
+    let url = URL.createObjectURL(file);
 
-  const player = document.createElement("div");
-  player.className = "card";
+    let player = document.createElement("div");
+    player.className = "card";
 
-  player.innerHTML = `
-    <video controls autoplay width="100%">
-      <source src="${url}">
-    </video>
-    <button onclick="this.parentElement.remove()">Close</button>
-  `;
+    player.innerHTML = `
+      <video controls autoplay width="100%">
+        <source src="${url}">
+      </video>
+      <button onclick="this.parentElement.remove()">Close</button>
+    `;
 
-  document.getElementById("videoList").prepend(player);
+    document.body.appendChild(player);
+  };
 }
 
-/* IDEAS */
+/* ---------- DELETE ---------- */
+function deleteVideo(id) {
+  let tx = db.transaction("videos", "readwrite");
+  let store = tx.objectStore("videos");
+  store.delete(id);
+
+  setTimeout(loadVideos, 200);
+}
+
+/* ---------- IDEAS ---------- */
 function addIdea() {
-  const input = document.getElementById("ideaInput");
+  let input = document.getElementById("ideaInput");
 
   let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
   ideas.push(input.value);
@@ -182,13 +202,13 @@ function addIdea() {
 }
 
 function loadIdeas() {
-  const list = document.getElementById("ideasList");
+  let list = document.getElementById("ideasList");
   list.innerHTML = "";
 
   let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
 
   ideas.forEach(i => {
-    const div = document.createElement("div");
+    let div = document.createElement("div");
     div.className = "card";
     div.textContent = i;
     list.appendChild(div);
