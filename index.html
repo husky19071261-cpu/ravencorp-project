@@ -45,6 +45,7 @@ body {
 <button onclick="showVideos()">🎬 Videos</button>
 <button onclick="showIdeas()">🧠 Ideas</button>
 
+<!-- VIDEOS -->
 <div id="videosPage" class="hidden">
 
 <h2>Video Cloud</h2>
@@ -57,6 +58,7 @@ body {
 
 </div>
 
+<!-- IDEAS -->
 <div id="ideasPage" class="hidden">
 <h2>Ideas</h2>
 
@@ -69,10 +71,10 @@ body {
 
 <script>
 
-/* ---------- SESSION STORAGE ---------- */
+/* 🔥 SESSION FILE STORAGE (FIXES PLAYBACK) */
 let sessionFiles = {};
 
-/* ---------- NAV ---------- */
+/* NAV */
 function showVideos() {
   document.getElementById("videosPage").classList.remove("hidden");
   document.getElementById("ideasPage").classList.add("hidden");
@@ -85,7 +87,7 @@ function showIdeas() {
   loadIdeas();
 }
 
-/* ---------- DRAG DROP ---------- */
+/* DRAG & DROP */
 const dropZone = document.getElementById("dropZone");
 
 dropZone.addEventListener("dragover", e => {
@@ -103,7 +105,7 @@ function handleFiles(files) {
   for (let file of files) {
     if (!file.type.startsWith("video")) continue;
 
-    let id = Date.now() + Math.random();
+    const id = Date.now() + Math.random();
 
     sessionFiles[id] = file;
 
@@ -117,12 +119,12 @@ function handleFiles(files) {
   loadVideos();
 }
 
-/* ---------- LOAD VIDEOS ---------- */
+/* LOAD VIDEOS */
 function loadVideos() {
   const list = document.getElementById("videoList");
   list.innerHTML = "";
 
-  let search = document.getElementById("search").value.toLowerCase();
+  const search = document.getElementById("search").value.toLowerCase();
 
   let videos = JSON.parse(localStorage.getItem("videos")) || [];
 
@@ -130,7 +132,7 @@ function loadVideos() {
     .filter(v => v.title.toLowerCase().includes(search))
     .forEach(v => {
 
-      let div = document.createElement("div");
+      const div = document.createElement("div");
       div.className = "card";
 
       div.innerHTML = `
@@ -142,18 +144,18 @@ function loadVideos() {
     });
 }
 
-/* ---------- PLAY ---------- */
+/* PLAY VIDEO */
 function playVideo(id) {
-  let file = sessionFiles[id];
+  const file = sessionFiles[id];
 
   if (!file) {
     alert("Re-drag the video to play it.");
     return;
   }
 
-  let url = URL.createObjectURL(file);
+  const url = URL.createObjectURL(file);
 
-  let player = document.createElement("div");
+  const player = document.createElement("div");
   player.className = "card";
 
   player.innerHTML = `
@@ -163,28 +165,30 @@ function playVideo(id) {
     <button onclick="this.parentElement.remove()">Close</button>
   `;
 
-  document.body.appendChild(player);
+  document.getElementById("videoList").prepend(player);
 }
 
-/* ---------- IDEAS ---------- */
+/* IDEAS */
 function addIdea() {
-  let text = document.getElementById("ideaInput").value;
+  const input = document.getElementById("ideaInput");
 
   let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
-  ideas.push(text);
+  ideas.push(input.value);
 
   localStorage.setItem("ideas", JSON.stringify(ideas));
+  input.value = "";
+
   loadIdeas();
 }
 
 function loadIdeas() {
-  let list = document.getElementById("ideasList");
+  const list = document.getElementById("ideasList");
   list.innerHTML = "";
 
   let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
 
   ideas.forEach(i => {
-    let div = document.createElement("div");
+    const div = document.createElement("div");
     div.className = "card";
     div.textContent = i;
     list.appendChild(div);
